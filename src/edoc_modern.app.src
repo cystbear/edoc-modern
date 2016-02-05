@@ -1,0 +1,13 @@
+{application, edoc_modern, [
+	{description, "A modern layout for edoc"},
+	{vsn, "0.1.0"},
+	{registered, []},
+	{applications, [
+		kernel,
+		stdlib,
+		edoc,
+		xmerl
+	]},
+	{env,[]},
+	{modules, []}
+]}.

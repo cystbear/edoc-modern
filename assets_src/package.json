@@ -1,0 +1,10 @@
+{
+  "name": "edoc-modern",
+  "version": "1.0.0",
+  "description": "",
+  "private": true,
+  "devDependencies": {
+    "less": "^2.6.0",
+    "normalize.css": "^3.0.3"
+  }
+}
