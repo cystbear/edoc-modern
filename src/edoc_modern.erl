@@ -4,51 +4,29 @@
 ]).
 
 -include_lib("edoc/include/edoc_doclet.hrl").
+-include("./edoc_modern_doc.hrl").
 
+
+%% @doc Main doclet entry point.
 -spec run(#doclet_gen{} | #doclet_toc{}, #context{}) -> ok.
-run(#doclet_gen{sources = Sources, app = App}, Context) ->
-	gen(Sources, App, Context);
+run(#doclet_gen{sources = Sources, app = App}, #context{dir = OutputDir, env = Env, opts = Options}) ->
+	Docs = [edoc_modern_doc:from_source(filename:join(SourceDir, SourceFile), Env, Options) ||
+		{_Module, SourceFile, SourceDir} <- Sources],
+	gen(OutputDir, App, [Doc || Doc <- Docs, not Doc#module.private, not Doc#module.hidden]);
 run(#doclet_toc{paths = Paths}, Context) ->
 	io:format("TOC~npaths=~p~ncontext=~p~n", [Paths, Context]).
 	%toc(Paths, Context).
 
 %% @private
-gen(Sources, App, #context{dir = Dir, env = Env, opts = Options}) ->
-	ModulesMetadata = lists:foldl(fun ({Module, Filename, Filedir}, ModulesMetadata) ->
-		Name = atom_to_list(Module) ++ ".html",
-		{Metadata, Html} = module(App, Module, filename:join(Filedir, Filename), Env, Options),
-		edoc_lib:write_file(Html, Dir, Name, [{encoding, utf8}]),
-		[Metadata | ModulesMetadata]
-	end, [], Sources),
-	write_metadata(Dir, #{modules => ModulesMetadata}),
-	copy_assets(filename:join(Dir, "assets")).
-
-%% @private
-write_metadata(Dir, Metadata) ->
-	MetadataStr = ["sidebarNodes=", jsx:encode(Metadata), ";"],
-	edoc_lib:write_file(MetadataStr, Dir, "metadata.js", [{encoding, utf8}]).
-
-%% @private
-copy_assets(ToDir) ->
-	FromDir = code:priv_dir(?MODULE),
-	ok = copy_asset(FromDir, ToDir, "app.css"),
-	ok = copy_asset(FromDir, ToDir, "app.js").
-
-%% @private
-copy_asset(FromDir, ToDir, Name) ->
-	From = filename:join(FromDir, Name),
-	To = filename:join(ToDir, Name),
-	ok = filelib:ensure_dir(To),
-	edoc_lib:copy_file(From, To).
-
-%% @private
-module(App, Module, Path, Env, Options) ->
-	Title = title(App, Module),
-	{_Module, Doc} = edoc:get_doc(Path, Env, Options),
-	Metadata = #{id => Module, title => Module, functions => [], types => []},
-	Xml = page(Title, navigation(edoc:layout(Doc, [{layout, edoc_modern_layout} | Options]))),
-	Html = xmerl:export_simple(Xml, edoc_modern_html5, []),
-	{Metadata, Html}.
+gen(OutputDir, App, Docs) ->
+	lists:foreach(fun (#module{name = ModuleName} = ModuleDoc) ->
+		Title = title(App, ModuleName),
+		Navigation = navigation(ModuleName, Docs),
+		Content = content(ModuleDoc),
+		OutputName = ModuleName ++ ".html",
+		write_html(OutputDir, OutputName, layout(Title, Navigation, Content))
+	end, Docs),
+	copy_assets(filename:join(OutputDir, "assets")).
 
 %% @private
 title(?NO_APP, Module) ->
@@ -57,26 +35,25 @@ title(App, Module) ->
 	io_lib:fwrite("~s – ~s", [Module, App]).
 
 %% @private
-navigation(Content) ->
-	[{'div', [{class, "main"}], [
-		{button, [{class, "sidebar-toggle"}], [{i, [{class, "icon-menu"}], []}]},
-		{section, [{class, "sidebar"}], [
-			{button, [{class, "sidebar-toggle"}], [{i, [{class, "icon-menu"}], []}]},
-			{ul, [{class, "sidebar-listNav"}], [
+navigation(_ModuleName, ModuleDocs) ->
+	[{ul, lists:map(fun (Doc) ->
+		Href = Doc#module.name ++ ".html",
+		{li, [
+			{a, [{href, Href}], [Doc#module.name]},
+			{ul, lists:map (fun (Function) ->
 				{li, [
-					{a, [{id, "modules-list"}, {href, "#full-list"}], ["Modules"]}
+					{a, [{href, Href ++ "#" ++ Function#function.label}], [Function#function.name, "/", Function#function.arity]}
 				]}
-			]},
-			{ul, [{id, "full-list"}, {class, "sidebar-fullList"}], []},
-			{'div', [{class, "sidebar-noResults"}], []}
-		]},
-		{section, [{class, "content"}], [
-			{'div', [{id, "content"}, {class, "content-inner"}], Content}
+			end, Doc#module.functions)}
 		]}
-	]}].
+	end, ModuleDocs)}].
 
 %% @private
-page(Title, Body) ->
+content(ModuleDocs) ->
+	edoc_modern_doc:to_html(ModuleDocs).
+
+%% @private
+layout(Title, Navigation, Content) ->
 	[{html, [
 		{head, [
 			meta([{charset, "utf-8"}]),
@@ -86,15 +63,31 @@ page(Title, Body) ->
 			{title, [Title]},
 			{link, [{rel, "stylesheet"}, {href, "assets/app.css"}], []}
 		]},
-		{body, [],
-			Body ++
-			[
-				{script, [{src, "metadata.js"}], []},
-				{script, [{src, "assets/app.js"}], []}
-			]
-		}
+		{body, [
+			{'div', [{id, app}], [
+				{nav, [{id, 'app-navigation'}], Navigation},
+				{main, [{id, 'app-content'}], Content}
+			]}
+		]}
 	]}].
 
 %% @private
 meta(Attributes) ->
 	{meta, Attributes, []}.
+
+%% @private
+write_html(OutputDir, OutputName, Xml) ->
+	Html = xmerl:export_simple(Xml, edoc_modern_xmerl_html5, []),
+	edoc_lib:write_file(Html, OutputDir, OutputName, [{encoding, utf8}]).
+
+%% @private
+copy_assets(ToDir) ->
+	FromDir = code:priv_dir(?MODULE),
+	ok = copy_asset(FromDir, ToDir, "app.css").
+
+%% @private
+copy_asset(FromDir, ToDir, Name) ->
+	From = filename:join(FromDir, Name),
+	To = filename:join(ToDir, Name),
+	ok = filelib:ensure_dir(To),
+	edoc_lib:copy_file(From, To).

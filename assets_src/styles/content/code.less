@@ -1,0 +1,45 @@
+
+a.no-underline,
+code a {
+  color: @colorPrimary;
+  text-shadow: none;
+  background-image: none;
+
+  &:visited,
+  &:active,
+  &:focus,
+  &:hover {
+    color: @colorPrimary;
+  }
+}
+
+code {
+  font-family: @fontMonospace;
+  font-size: 15px;
+  font-style: normal;
+  line-height: 24px;
+  font-weight: 400;
+  background-color: @colorLightestBlue;
+  border: 1px solid @colorGray;
+  vertical-align: middle;
+  border-radius: 2px;
+  padding: 0 .5em;
+}
+
+pre {
+  margin: 1em 0;
+
+  &.spec {
+      margin: 0;
+  }
+
+  &.spec code {
+    padding: 0;
+  }
+
+  code.hljs {
+    white-space: inherit;
+    padding: 1em 1.5em;
+    background-color: @colorLightestBlue;
+  }
+}

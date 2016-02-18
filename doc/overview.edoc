@@ -1,0 +1,18 @@
+@author Ali Sabil <ali.sabil@gmail.com>
+@copyright 2016 Ali Sabil
+@title Modern EDoc
+@doc Modern Edoc is a modern layout for Edoc. This layout is
+meant as a modern alternative to the default layout provided
+by EDoc. It generates an HTML5 documentation from EDoc comments.
+
+== Usage ==
+=== rebar ===
+Add `edoc_modern' as a dependency to your rebar.config, and use `edoc_modern` as the doclet for edoc
+
+```
+{edoc_opts, [{doclet, edoc_modern}]}.
+{deps, [
+	{edoc_modern, "1.0.0"}
+	%% ... Other dependencies
+]}.
+```

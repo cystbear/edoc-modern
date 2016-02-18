@@ -1,30 +1,26 @@
--module(edoc_modern_layout).
+%% @private
+-module(edoc_modern_doc_html).
 -export([
-	module/2
+	module/1
 ]).
 
--include("edoc_modern.hrl").
+-include("./edoc_modern_doc.hrl").
 
-
-module(Element, _Options) ->
-	layout(edoc_modern_xml:module(Element)).
-	%xmerl:export_simple(Xml, edoc_modern_html5, []).
-
-%% @private
-layout(#module{name = Name, description = Description, types = Types, functions = Functions}) ->
-	[
+-spec module(#module{}) -> [tuple()].
+module(#module{name = Name, description = Description, types = Types, functions = Functions}) ->
+	[{article, [{class, "module"}], [
 		{h1, [Name]},
 		layout_module_doc(Description),
 		layout_module_summary(Types, Functions),
 		layout_module_types(Types),
 		layout_module_functions(Functions)
-	].
+	]}].
 
 %% @private
 layout_module_doc(undefined) ->
 	[];
 layout_module_doc(#description{brief = Brief, full = Full}) ->
-	{section, [{id, "moduledoc"}, {class, "docstring"}], [
+	{section, [{class, "description"}], [
 		{p, Brief},
 		if
 			Full =:= undefined -> [];
@@ -36,7 +32,7 @@ layout_module_doc(#description{brief = Brief, full = Full}) ->
 layout_module_summary([], []) ->
 	[];
 layout_module_summary(Types, Functions) ->
-	{section, [{id, "summary"}, {class, "details-list"}], [
+	{section, [{class, "summary"}], [
 		{h1, [anchor("#summary", "Summary")]},
 		layout_summary("types", "Types", Types),
 		layout_summary("functions", "Functions", Functions)
@@ -47,7 +43,7 @@ layout_module_summary(Types, Functions) ->
 layout_summary(_, _, []) ->
 	[];
 layout_summary(Id, Title, Items) ->
-	{'div', [{class, "summary summary-types"}], [
+	{'div', [{class, "summary summary-" ++ Id}], [
 		{h2, [anchor("#" ++ Id, Title)]} |
 		[layout_summary_row(Item) || Item <- Items]
 	]}.

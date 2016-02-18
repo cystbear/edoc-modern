@@ -1,4 +1,5 @@
--module(edoc_modern_html5).
+%% @private
+-module(edoc_modern_xmerl_html5).
 -export([
 	'#xml-inheritance#'/0
 ]).

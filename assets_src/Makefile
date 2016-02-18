@@ -11,7 +11,7 @@ clean:
 	$(RM) $(assets)
 
 # Build targets
-$(output_dir)/%.css: styles/%.less node_modules Makefile | $(output_dir)
+$(output_dir)/%.css: styles/%.less $(wildcard styles/**/*.less) node_modules Makefile | $(output_dir)
 	$(lessc) $< > $@
 
 $(output_dir):

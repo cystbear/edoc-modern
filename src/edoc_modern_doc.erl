@@ -1,11 +1,27 @@
--module(edoc_modern_xml).
+%% @private
+-module(edoc_modern_doc).
 -export([
-	module/1
+	from_source/3
 ]).
 
--include("edoc_modern.hrl").
--include_lib("xmerl/include/xmerl.hrl").
+-export([
+	to_html/1
+]).
 
+
+-include_lib("xmerl/include/xmerl.hrl").
+-include("./edoc_modern_doc.hrl").
+
+-spec from_source(string(), term(), proplists:proplist()) -> {Module :: atom(), #module{}}.
+from_source(Source, Env, Options) ->
+	{_Module, Doc} = edoc:get_doc(Source, Env, Options),
+	module(Doc).
+
+-spec to_html(#module{}) -> [tuple()].
+to_html(#module{} = Doc) ->
+	edoc_modern_doc_html:module(Doc).
+
+%% @private
 module(#xmlElement{name = module, attributes = Attributes, content = Content}) ->
 	lists:foldl(fun
 		(#xmlAttribute{name = name, value = Value}, Acc) ->
@@ -167,7 +183,7 @@ function(#xmlElement{name = function, content = Content} = Function) ->
 	end, #function{
 		label = get_attr(label, Function, ""),
 		name = get_attr(name, Function),
-		arity = get_attr(name, Function),
+		arity = get_attr(arity, Function),
 		exported = yes_no(get_attr(exported, Function, "no"))
 	}, Content).
 

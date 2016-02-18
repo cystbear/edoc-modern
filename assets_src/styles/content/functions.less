@@ -1,0 +1,80 @@
+.detail-header {
+  margin: 1.5em 0 .5em;
+  padding: .5em 1em;
+  background: rgba(0, 0, 0, 0.1);
+  border-left: 3px solid @colorPrimary;
+  font-size: 1em;
+  font-family: @fontMonospace;
+  position: relative;
+
+  .signature {
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  &:hover a.detail-link {
+    opacity: 1;
+    text-decoration: none;
+  }
+
+  a.detail-link {
+    transition: opacity 0.3s ease-in-out;
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: block;
+    opacity: 0;
+    padding: .6em;
+    line-height: 1.5em;
+    margin-left: -2.5em;
+    background: none;
+    border: none;
+    text-shadow: none;
+  }
+}
+
+.specs {
+  .spec-title {
+
+  }
+
+  .specs-list {
+    margin: 0 0 2em 0;
+
+    pre {
+      margin: .5em 0;
+
+      code {
+        padding: 0 .5em;
+        border: none;
+      }
+    }
+  }
+}
+
+.docstring {
+  margin-bottom: 3.5em;
+
+  h2,
+  h3,
+  h4,
+  h5 {
+    font-weight: 800;
+  }
+
+  h2 {
+    font-size: 1em;
+  }
+
+  h3 {
+    font-size: 0.95em;
+  }
+
+  h4 {
+    font-size: 0.9em;
+  }
+
+  h5 {
+    font-size: 0.85em;
+  }
+}
