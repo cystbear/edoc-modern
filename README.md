@@ -7,3 +7,8 @@ Build
 -----
 
     $ rebar3 compile
+
+Use
+---
+
+    $ rebar3 edoc
